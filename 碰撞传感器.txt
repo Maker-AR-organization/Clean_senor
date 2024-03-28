@@ -1,0 +1,27 @@
+int sensorPin = A0; //定义模拟口A0
+int ledPin = 13; //定义数字口13
+int sensorValue = 0; //定义数字变量sensorValue，并设为0
+
+void setup() 
+{
+  pinMode(ledPin, OUTPUT); //将ledPin设置为输出
+  Serial.begin(9600); // 初始化串口，波特率为9600
+}
+
+void loop()
+{
+  sensorValue = analogRead(sensorPin); //读取传感器数值，并赋值给sensorValue
+
+  if (sensorValue > 500)  //当sensorValue大于500时，LED亮起
+  {
+    digitalWrite(ledPin, HIGH);//LED亮起
+  }
+  else 
+  {
+    digitalWrite(ledPin, LOW);//LED变暗
+  }
+
+  // 输出传感器数据到串口
+  Serial.print("Sensor value: ");
+  Serial.println(sensorValue);
+}

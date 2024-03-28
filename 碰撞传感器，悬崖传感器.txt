@@ -1,0 +1,30 @@
+const int collisionSensorPin = 2; // 将碰撞传感器连接到数字引脚2
+const int cliffSensorPin = 3;     // 将悬崖传感器连接到数字引脚3
+
+int collisionSensorState = 0;     // 用于存储碰撞传感器状态的变量
+int cliffSensorState = 0;         // 用于存储悬崖传感器状态的变量
+
+void setup() {
+  pinMode(collisionSensorPin, INPUT); // 将碰撞传感器引脚设置为输入模式
+  pinMode(cliffSensorPin, INPUT);     // 将悬崖传感器引脚设置为输入模式
+  Serial.begin(9600);                 // 初始化串行通信
+}
+
+void loop() {
+  collisionSensorState = digitalRead(collisionSensorPin); // 读取碰撞传感器状态
+  cliffSensorState = digitalRead(cliffSensorPin);         // 读取悬崖传感器状态
+
+  if (collisionSensorState == HIGH) {
+    Serial.println("碰撞发生"); // 如果碰撞传感器状态为高（碰撞发生），则输出信息到串行监视器
+  } else {
+    Serial.println("未检测到碰撞"); // 如果碰撞传感器状态为低（未检测到碰撞），则输出信息到串行监视器
+  }
+
+  if (cliffSensorState == HIGH) {
+    Serial.println("悬崖检测到"); // 如果悬崖传感器状态为高（悬崖检测到），则输出信息到串行监视器
+  } else {
+    Serial.println("悬崖未检测到"); // 如果悬崖传感器状态为低（悬崖未检测到），则输出信息到串行监视器
+  }
+
+  delay(1000); // 等待1秒后再次读取传感器状态
+}

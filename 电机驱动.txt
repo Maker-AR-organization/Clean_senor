@@ -1,0 +1,166 @@
+#define IN1 4
+#define IN2 5  
+#define IN3 6  
+#define IN4 7
+#define  ENA  9 
+#define  ENB  10 //定义ENA为10口
+void setup()
+{  
+  pinMode(IN1,OUTPUT);
+  pinMode(IN2,OUTPUT);
+  pinMode(IN3,OUTPUT);
+  pinMode(IN4,OUTPUT);
+  pinMode(ENA,OUTPUT);
+  pinMode(ENB,OUTPUT);
+}
+void loop()
+{   //正转速度为满速的 200/255
+   digitalWrite(IN1,HIGH);  //控制电机正转
+   digitalWrite(IN2,LOW);
+   analogWrite(ENA,200);   //控制电机转速，迳我自己测试超过150电机才开始转
+   digitalWrite(IN3,HIGH);  //控制电机正转
+   digitalWrite(IN4,LOW);
+   analogWrite(ENB,200);   //控制电机转速，迳我自己测试超过150电机才开始转
+   delay(5000);
+   
+   digitalWrite(IN1,LOW);   //电机反转
+   digitalWrite(IN2,HIGH);
+   digitalWrite(IN3,LOW);   //电机反转
+   digitalWrite(IN4,HIGH);
+   analogWrite(ENA,200);
+   analogWrite(ENB,200);
+   delay(5000);
+    
+    digitalWrite(IN1,LOW); //控制电机停下
+    digitalWrite(IN2,LOW); 
+    analogWrite(ENA,255);
+    digitalWrite(IN3,LOW); //控制电机停下
+    digitalWrite(IN4,LOW); 
+    analogWrite(ENB,255); 
+   
+}
+
+
+
+#define IN1 4
+#define IN2 5  
+#define IN3 6  
+#define IN4 7
+#define  ENA  9 
+#define  ENB  10 //定义ENA为10口
+
+int sensorPin = A0; //定义模拟口A0
+int ledPin = 13; //定义数字口13
+int sensorValue = 0; //定义数字变量sensorValue，并设为0
+
+void setup() 
+{
+  pinMode(ledPin, OUTPUT); //将ledPin设置为输出
+  Serial.begin(9600); // 初始化串口，波特率为9600
+   pinMode(IN1,OUTPUT);
+  pinMode(IN2,OUTPUT);
+  pinMode(IN3,OUTPUT);
+  pinMode(IN4,OUTPUT);
+  pinMode(ENA,OUTPUT);
+  pinMode(ENB,OUTPUT);
+}
+
+void loop()
+{
+  sensorValue = analogRead(sensorPin); //读取传感器数值，并赋值给sensorValue
+
+  if (sensorValue > 500)  //当sensorValue大于500时，左转
+  {
+    digitalWrite(ledPin, HIGH);//LED亮起
+    digitalWrite(IN1,HIGH); //控制电机停下
+    digitalWrite(IN2,LOW); 
+    analogWrite(ENA,100);
+    digitalWrite(IN3,HIGH);  //控制电机左转
+    digitalWrite(IN4,LOW);
+    analogWrite(ENB,200);   //控制电机转速
+  }
+  else  //当sensorValue小于等于500时，直走
+  {
+    digitalWrite(ledPin, LOW);//LED变暗
+    digitalWrite(IN1,HIGH);  //控制电机正转
+    digitalWrite(IN2,LOW);
+    digitalWrite(IN3,HIGH);  //控制电机正转
+    digitalWrite(IN4,LOW);
+    analogWrite(ENB,200);   //控制电机转速
+    analogWrite(ENA,200);   //控制电机转速
+ 
+  }
+
+  // 输出传感器数据到串口
+  Serial.print("Sensor value: ");
+  Serial.println(sensorValue);
+}
+
+
+控制小车直行
+
+#include <Wire.h>
+#include <MPU6050.h>
+#define IN1 4
+#define IN2 5  
+#define IN3 6  
+#define IN4 7
+#define  ENA  9 
+#define  ENB  10 //定义ENA为10口
+
+MPU6050 mpu;
+
+void setup() {
+  Wire.begin();
+  Serial.begin(9600);
+  pinMode(IN1,OUTPUT);
+  pinMode(IN2,OUTPUT);
+  pinMode(IN3,OUTPUT);
+  pinMode(IN4,OUTPUT);
+  pinMode(ENA,OUTPUT);
+  pinMode(ENB,OUTPUT);
+  // 初始化MPU6050传感器
+  mpu.initialize();
+
+  // 验证传感器是否正常工作
+  if (!mpu.testConnection()) {
+    Serial.println("无法找到有效的MPU6050传感器，请检查接线！");
+    while (1);
+  }
+}
+
+void loop() {
+  int16_t ax, ay, az;
+  mpu.getAcceleration(&ax, &ay, &az);
+  
+  // 计算横向加速度的绝对值
+  float lateralAccel = sqrt(ax * ax + az * az);
+
+
+  // 设置一个阈值，当横向加速度超过这个阈值时，认为小车不在直线上行驶
+  float lateralAccelThreshold =100; // 这个值需要根据实际情况调整
+
+
+  // 输出结果
+  if (lateralAccel < lateralAccelThreshold) {
+    digitalWrite(IN1,HIGH);  //控制电机正转
+    digitalWrite(IN2,LOW);
+    digitalWrite(IN3,HIGH);  //控制电机正转
+    digitalWrite(IN4,LOW);
+    analogWrite(ENB,200);   //控制电机转速
+    analogWrite(ENA,200);   //控制电机转速
+    Serial.println("小车在直线上行驶");
+  } else {
+    digitalWrite(IN1,HIGH);  //控制电机正转
+    digitalWrite(IN2,LOW);
+    digitalWrite(IN3,HIGH);  //控制电机正转
+    digitalWrite(IN4,LOW);
+    analogWrite(ENB,100);   //控制电机转速
+    analogWrite(ENA,200);   //控制电机转速
+    Serial.print("小车可能正在转弯或受到干扰，横向加速度: ");
+    Serial.println(lateralAccel);
+  }
+
+  delay(100);
+}
+

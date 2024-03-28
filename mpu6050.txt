@@ -1,0 +1,90 @@
+#include <Wire.h>
+#define ACCEL_CONFIG 1
+#define GYRO_CONFIG 1
+#define G 9.8
+float val_seven[7];
+
+void MPU_START(void)
+{
+   Wire.beginTransmission(0x68); // 开启MPU6050的传输
+   Wire.write(0x6B); // 指定寄存器地址
+   Wire.write(0); // 写入一个字节的数
+   Wire.endTransmission(true); // 结束传输，true表示释放总线
+}
+
+void GYRO_CONFIG_SET(int f)
+{   
+   Wire.beginTransmission(0x68); // 开启MPU-6050的传输
+   Wire.write(0x1B); // 角速度倍率寄存器的地址
+   Wire.requestFrom(0x68, 1, true); // 先读出原配置
+   unsigned char gyro_conf = Wire.read();
+   gyro_conf = ((gyro_conf & 0xE7) | (f << 3));
+   Wire.write(gyro_conf);
+   Wire.endTransmission(true); // 结束传输，true表示释放总线
+}
+
+void ACCEL_CONFIG_SET(int f)
+{
+   Wire.beginTransmission(0x68); // 开启MPU-6050的传输
+   Wire.write(0x1C); // 加速度倍率寄存器的地址
+   Wire.requestFrom(0x68, 1, true); // 先读出原配置
+   unsigned char acc_conf = Wire.read();
+   acc_conf = ((acc_conf & 0xE7) | (f << 3));
+   Wire.write(acc_conf);
+   Wire.endTransmission(true); // 结束传输，true表示释放总线
+}
+
+void Get_Value(void)
+{
+   Wire.beginTransmission(0x68); // 开启MPU-6050的传输
+   Wire.write(0x3B);
+   Wire.endTransmission(false);
+   Wire.requestFrom(0x68, 14, true);
+   for (long i = 0; i < 7; ++i) 
+   {
+      val_seven[i] = Wire.read() << 8 | Wire.read();
+   }
+   val_seven[0] = (float)(val_seven[0] / 32768 * (1 << ACCEL_CONFIG) * G);
+   val_seven[1] = (float)(val_seven[1] / 32768 * (1 << ACCEL_CONFIG) * G);
+   val_seven[2] = (float)(val_seven[2] / 32768 * (1 << ACCEL_CONFIG) * G);
+   val_seven[3] = (float)(val_seven[3] / 340 + 36.53);
+   val_seven[4] = (float)(val_seven[4] / 32768 * (1 << GYRO_CONFIG) * 250);
+   val_seven[5] = (float)(val_seven[5] / 32768 * (1 << GYRO_CONFIG) * 250);
+   val_seven[6] = (float)(val_seven[6] / 32768 * (1 << GYRO_CONFIG) * 250);
+}
+
+void setup()
+{
+   Serial.begin(9600);
+   Wire.begin();
+   MPU_START();
+   GYRO_CONFIG_SET(0);
+   ACCEL_CONFIG_SET(0);
+}
+
+void loop()
+{
+   Get_Value();
+   Serial.print("acc_x:");
+   Serial.print('\t');
+   Serial.println(val_seven[0]);
+   Serial.print("acc_y:");
+   Serial.print('\t');
+   Serial.println(val_seven[1]);
+   Serial.print("acc_z:");
+   Serial.print('\t');
+   Serial.println(val_seven[2]);
+   Serial.print("gyr_x:");
+   Serial.print('\t');
+   Serial.println(val_seven[4]);
+   Serial.print("gyr_y:");
+   Serial.print('\t');
+   Serial.println(val_seven[5]);
+   Serial.print("gyr_z:");
+   Serial.print('\t');
+   Serial.println(val_seven[6]);
+   Serial.print("TEMP:");
+   Serial.print('\t');
+   Serial.println(val_seven[3]);
+   delay(500);
+}
